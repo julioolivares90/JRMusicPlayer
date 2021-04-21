@@ -1,6 +1,8 @@
 package com.julioolivares.musicplayer.fragments
 
 import android.content.ContentUris
+import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
@@ -37,6 +39,12 @@ class MusicPlayFragment : Fragment(R.layout.fragment_music_play) {
 
     private var seekLength : Int =0
 
+    private val seekForwardTime = 5000
+
+    private val seekBackwardTime = 5000
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -61,9 +69,73 @@ class MusicPlayFragment : Fragment(R.layout.fragment_music_play) {
         binding.tvTitle.text = song.songTitle
         binding.tvDuration.text = song.songDuration
 
+        displaySongArt()
+
         binding.ibPlay.setOnClickListener {
             playSong()
         }
+
+        binding.ibForwardSong.setOnClickListener {
+            forwardSong()
+        }
+
+        binding.ibBackwardSong.setOnClickListener {
+            backwardSong()
+        }
+
+        binding.ibRepeat.setOnClickListener {
+            repeatSong()
+        }
+    }
+
+    private fun displaySongArt(){
+        val mediaMetadataRetriever = MediaMetadataRetriever()
+        mediaMetadataRetriever.setDataSource(song.songUri)
+        val data = mediaMetadataRetriever.embeddedPicture
+        if (data != null){
+            val bitmap = BitmapFactory.decodeByteArray(
+                    data,0,data.size
+            )
+            binding.ibCover.setImageBitmap(bitmap)
+        }
+    }
+    private fun repeatSong(){
+        if (!mediaPlayer!!.isLooping){
+            mediaPlayer!!.isLooping = true
+            binding.ibRepeat.setImageDrawable(
+                    ContextCompat.getDrawable(
+                            activity?.applicationContext!!,
+                            R.drawable.ic_repeat_white
+                    )
+            )
+        }else {
+            mediaPlayer!!.isLooping = false
+            binding.ibRepeat.setImageDrawable(
+                    ContextCompat.getDrawable(
+                            activity?.applicationContext!!,
+                            R.drawable.ic_repeat
+                    )
+            )
+        }
+    }
+    private fun backwardSong() {
+        mediaPlayer?.let {player->
+            val currentPosition = player.currentPosition
+
+            if (currentPosition - seekBackwardTime >= 0)
+                player.seekTo(currentPosition - seekBackwardTime)
+            player.seekTo(0)
+        }
+    }
+
+    private fun forwardSong() {
+        mediaPlayer?.let {player->
+            val currentPosition : Int = player.currentPosition
+            if (currentPosition + seekForwardTime <= player.duration)
+                player.seekTo(currentPosition+seekForwardTime)
+            player.seekTo(player.duration)
+        }
+
     }
 
     override fun onDestroy() {
@@ -150,6 +222,7 @@ class MusicPlayFragment : Fragment(R.layout.fragment_music_play) {
         )
 
     }
+
 
     private fun clearMediaPlayer(){
         if (mediaPlayer!!.isPlaying)
