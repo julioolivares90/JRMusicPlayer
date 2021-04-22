@@ -21,4 +21,8 @@ object Constants {
                 )
         )
     }
+
+     fun checkDuration(songDuration: String?) : Long{
+        return songDuration?.toLong() ?: 0L
+    }
 }

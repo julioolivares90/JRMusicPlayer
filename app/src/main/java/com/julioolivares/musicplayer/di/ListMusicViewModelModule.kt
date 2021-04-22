@@ -8,7 +8,7 @@ import org.koin.dsl.module
 val listMusicViewModelModule = module {
     viewModel {
 
-        ListMusicViewModel(context = androidContext())
+        ListMusicViewModel(repository = get())
     }
 
 }

@@ -2,6 +2,7 @@ package com.julioolivares.musicplayer
 
 import android.app.Application
 import com.julioolivares.musicplayer.di.listMusicViewModelModule
+import com.julioolivares.musicplayer.di.sonRepositoryModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -15,7 +16,8 @@ class MusicApp : Application() {
             androidLogger()
             androidContext(this@MusicApp)
             modules(
-                listMusicViewModelModule
+                listMusicViewModelModule,
+                sonRepositoryModule
             )
         }
     }

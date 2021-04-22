@@ -41,7 +41,7 @@ class ListMusicFragment : Fragment(R.layout.fragment_list_music) {
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel.getAllSons()
+
     }
 
     override fun onCreateView(
@@ -56,11 +56,10 @@ class ListMusicFragment : Fragment(R.layout.fragment_list_music) {
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        loadSongs()
-        setupRecyclerView()
         checkUserPermission()
 
+        //loadSongs()
+        setupRecyclerView()
     }
     override fun onDestroy() {
         super.onDestroy()
@@ -77,7 +76,8 @@ class ListMusicFragment : Fragment(R.layout.fragment_list_music) {
             Constants.REQUEST_CODE_FOR_PERMISSIONS ->
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
                     //activity?.toast("Permissions Granted")
-                    loadSongs()
+                        viewModel.getAllSons()
+                        loadSongs()
                 }else {
                     activity?.toast("Permissions Denied")
                 }else -> {
@@ -107,6 +107,7 @@ class ListMusicFragment : Fragment(R.layout.fragment_list_music) {
             return
         }
        // activity?.toast("Granted")
+        viewModel.getAllSons()
         loadSongs()
     }
 

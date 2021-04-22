@@ -13,75 +13,28 @@ import androidx.lifecycle.ViewModel
 import com.julioolivares.musicplayer.helper.Constants
 import com.julioolivares.musicplayer.helper.Constants.toast
 import com.julioolivares.musicplayer.models.Song
+import com.julioolivares.musicplayer.repository.SongsRepository
 
-class ListMusicViewModel (private val context: Context) : ViewModel() {
+class ListMusicViewModel (private val repository: SongsRepository) : ViewModel() {
     private  var _songs : MutableLiveData<List<Song>> = MutableLiveData()
 
-    private var songsList : MutableList<Song> = ArrayList()
+    //private var songsList : MutableList<Song> = ArrayList()
+
+    private var _error : MutableLiveData<Boolean> = MutableLiveData()
+
+    fun error() : LiveData<Boolean> = _error
 
     fun sons() : LiveData<List<Song>> = _songs
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getAllSons() {
-        val allSongURI = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        val selection = MediaStore.Audio.Media.IS_MUSIC + "!=0"
+      val songs = repository.getAllSongs()
 
-        val sortOrder = "${MediaStore.Audio.Media.DISPLAY_NAME} ASC"
-
-        val cursor = context.applicationContext.contentResolver.query(
-                allSongURI,null,selection,null,sortOrder
-        )
-
-        when {
-            cursor == null -> {
-                context.toast("Ocurrio un error")
-            }
-            !cursor.moveToFirst() -> {
-                context.toast("No se encontraron archivos en el dispositivo")
-            }
-            else -> {
-                val titleColumn : Int = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE)
-                val idColumn : Int = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID)
-                do {
-                    val thisId = cursor.getLong(idColumn)
-                    val thisTitle = cursor.getString(titleColumn)
-
-                    Log.d("ID ->",thisId.toString())
-                    Log.d("TITLE ->",thisTitle)
-
-                    val songUri = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    val songAuthor = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    val songTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    val songDuration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION))
-
-                    //converting then song duration
-                    var songDurlong  :  Long
-
-                    songDurlong = checkDuration(songDuration)
-
-                    songDuration?.let {
-                        songDurlong = it.toLong()
-                    }
-                    //songDuration.toLong()
-
-                    val song = Song(songTitle = songTitle,
-                            songArtist = songAuthor,
-                            songUri = songUri,
-                            songDuration = Constants.durationConverter(songDurlong),
-                            idSong = thisId
-                    )
-                    songsList.add(song)
-
-                }while (cursor.moveToNext())
-
-                _songs.value = songsList
-            }
-
+        if (songs.isNotEmpty()){
+            _songs.value = songs
+            _error.value = false
+        }else{
+            _error.value = true
         }
-        cursor?.close()
-    }
-
-    private fun checkDuration(songDuration: String?) : Long{
-        return songDuration?.toLong() ?: 0L
     }
 }
