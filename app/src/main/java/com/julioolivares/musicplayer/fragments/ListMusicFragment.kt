@@ -20,6 +20,8 @@ import com.julioolivares.musicplayer.databinding.FragmentListMusicBinding
 import com.julioolivares.musicplayer.helper.Constants
 import com.julioolivares.musicplayer.helper.Constants.toast
 import com.julioolivares.musicplayer.models.Song
+import com.julioolivares.musicplayer.viewModels.ListMusicViewModel
+import org.koin.android.ext.android.inject
 import java.time.Duration
 
 
@@ -34,8 +36,12 @@ class ListMusicFragment : Fragment(R.layout.fragment_list_music) {
 
     private lateinit var songAdapter: SongAdapter
 
+    private  val viewModel: ListMusicViewModel by inject()
+
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        viewModel.getAllSons()
     }
 
     override fun onCreateView(
@@ -70,7 +76,7 @@ class ListMusicFragment : Fragment(R.layout.fragment_list_music) {
         when(requestCode){
             Constants.REQUEST_CODE_FOR_PERMISSIONS ->
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED){
-                    activity?.toast("Permissions Granted")
+                    //activity?.toast("Permissions Granted")
                     loadSongs()
                 }else {
                     activity?.toast("Permissions Denied")
@@ -100,103 +106,18 @@ class ListMusicFragment : Fragment(R.layout.fragment_list_music) {
             )
             return
         }
-        activity?.toast("Granted")
+       // activity?.toast("Granted")
         loadSongs()
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun loadSongs() {
-        //val resolver : ContentResolver = activity?.applicationContext!!.contentResolver
-        val allSongURI = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        val selection = MediaStore.Audio.Media.IS_MUSIC + "!=0"
-
-        val sortOrder = "${MediaStore.Audio.Media.DISPLAY_NAME} ASC"
-
-        val cursor = activity?.applicationContext?.contentResolver!!.query(
-                allSongURI,null,selection,null,sortOrder
-        )
-
-        when {
-            cursor == null -> {
-                context?.toast("Ocurrio un error")
-            }
-
-            !cursor.moveToFirst() -> {
-                context?.toast("No se encontraron archivos en el dispositivo")
-            }else -> {
-                val titleColumn : Int = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media.TITLE)
-                val idColumn : Int = cursor.getColumnIndex(android.provider.MediaStore.Audio.Media._ID)
-                do {
-                    val thisId = cursor.getLong(idColumn)
-                    val thisTitle = cursor.getString(titleColumn)
-
-                    Log.d("ID ->",thisId.toString())
-                    Log.d("TITLE ->",thisTitle)
-
-                    val songUri = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA))
-                    val songAuthor = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                    val songTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                    val songDuration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION))
-
-                    //converting then song duration
-                    var songDurlong  :  Long
-
-                    songDurlong = checkDuration(songDuration)
-
-                    songDuration?.let {
-                        songDurlong = it.toLong()
-                    }
-                    //songDuration.toLong()
-
-                    val song = Song(songTitle = songTitle,
-                            songArtist = songAuthor,
-                            songUri = songUri,
-                            songDuration = Constants.durationConverter(songDurlong),
-                            idSong = thisId
-                    )
-                    sonList.add(
-                            song
-                    )
-                }while (cursor.moveToNext())
-            }
-        }
-        /*
-        if (cursor != null){
-            while (cursor.moveToNext()){
-                val songUri = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DATA))
-                val songAuthor = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST))
-                val songTitle = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME))
-                val songDuration = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.DURATION))
-
-                //converting then song duration
-                var songDurlong  :  Long
-
-                songDurlong = checkDuration(songDuration)
-
-                songDuration?.let {
-                    songDurlong = it.toLong()
-                }
-                //songDuration.toLong()
-
-               val song = Song(songTitle = songTitle,
-                        songArtist = songAuthor,
-                        songUri = songUri,
-                        songDuration = Constants.durationConverter(songDurlong)
-                )
-                sonList.add(
-                      song
-                )
-            }
-        }
-         */
-
-        cursor?.close()
-
+        viewModel.sons().observe(viewLifecycleOwner, {songs ->
+            sonList.addAll(songs)
+        })
     }
 
-    private fun checkDuration(songDuration: String?) : Long{
-        return songDuration?.toLong() ?: 0L
-    }
+
     private fun setupRecyclerView(){
         songAdapter = SongAdapter()
 

@@ -39,9 +39,9 @@ class MusicPlayFragment : Fragment(R.layout.fragment_music_play) {
 
     private var seekLength : Int =0
 
-    private val seekForwardTime = 5000
+    private val seekForwardTime = 50
 
-    private val seekBackwardTime = 5000
+    private val seekBackwardTime = 50
 
 
 
@@ -90,7 +90,9 @@ class MusicPlayFragment : Fragment(R.layout.fragment_music_play) {
 
     private fun displaySongArt(){
         val mediaMetadataRetriever = MediaMetadataRetriever()
-        mediaMetadataRetriever.setDataSource(song.songUri)
+        val id = song.idSong
+        val contentUri = ContentUris.withAppendedId(android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,id)
+        mediaMetadataRetriever.setDataSource(requireContext().applicationContext,contentUri)
         val data = mediaMetadataRetriever.embeddedPicture
         if (data != null){
             val bitmap = BitmapFactory.decodeByteArray(

@@ -7,6 +7,8 @@ import java.util.concurrent.TimeUnit
 object Constants {
     const val REQUEST_CODE_FOR_PERMISSIONS = 101
 
+    const  val ACTION_PLAY : String = "com.example.action.PLAY"
+
     fun Context.toast(msg : String ){
         Toast.makeText(this,msg,Toast.LENGTH_LONG).show()
     }
